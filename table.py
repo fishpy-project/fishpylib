@@ -1,63 +1,54 @@
-import pandas as pd
-
-# Table object
 class Table:
-
-    # Table builder
-    def __init__(self):
-        self.data = pd.DataFrame()
-        self.pool = [list(item) for item in self.data.values]
+    def __init__(self, columns):
+        self.settings = {
+            'columns':columns,
+            'units': None,
+            'location': None,
+            'species': None
+        }
+        self.rows = []
+        self.settings['columns'].insert(0,'#')
 
     def __repr__(self):
-        if len(self.data) == 0:
-            return 'Empty Table'
-        else:
-            return self.data
+        sep = '|'
+        cell_size = 15
 
-    def new_row(self, row_data):
-        num_rows = len(self.data.index)
-        self.data.loc[num_rows] = row_data
-    
-    def new_column(self, col_name = None):
-        num_cols = len(self.data.columns) + 1
-        if col_name is None:
-            self.data[f'COL{num_cols}'] = None
-        else:
-            if type(col_name) == list:
-                for item in col_name:
-                    self.data[item] = None
-            else:
-                self.data[col_name.upper()] = None
+        aligned = [f'{column.upper():^{cell_size}}' for column in self.settings['columns']]
+        bar_size = [len(item) for item in aligned]
+        print(f'{"FISHPY LIB TABLE: Aaraipama gigas (Aracaju/SE - 2023)":<70}')
+        print((sum(bar_size)+4)*'=')
+        print(sep.join(aligned))
+        print((sum(bar_size)+4)*'-')
 
-    def edit_column_name(self, old_name, new_name):
-        if old_name in self.data.columns:
-            self.data = self.data.rename(columns = {old_name:new_name.upper()})
-        else:
-            print(f'{old_name} is not in the table')
+        if len(self.rows) == 0:
+            print('EMPTY TABLE')
 
-    def change_headers(self, source):
-        if type(source) == list:
-            if len(source) == len(self.data.columns):
-                self.data.columns = source
-            else:
-                print('The size of the list of headers are different than the list of old names')
-        else:
-            print('ERROR: source must be a list type')
+        for row in self.rows:
+            aligned = [f'{values:^{cell_size}}' for values in row.values()]
+            print(sep.join(aligned))
 
-    def load_data(self, source):
-        for item in source:
-            row_size = [len(item)]
-        max_col = max(row_size)
-        while max_col !=0:
-            self.new_column()
-            max_col -=1
-        if type(source) == list:
-            for item in source:
-                num_rows = len(self.data.index)
-                self.data.loc[num_rows] = item
-        else:
-            pass
+        print((sum(bar_size)+4)*'=')
 
-    def add_data(self, source):
-        for row in source:
-            self.new_row(row)
+    def add_row(self, values, group = False):
+        if group == False:
+            values.insert(0,len(self.rows))
+            try:
+                self.rows.append({self.settings['columns'][i]: values[i] for i in range (len(self.settings['columns']))})
+            except:
+                print(f"ERROR: The row has {len(values)} items and there are {len(self.settings['columns'])} columns in the table.")
+        elif group == True:
+            for row in values:
+                row.insert(0,len(self.rows))
+                try:
+                    self.rows.append({self.settings['columns'][i]: row[i] for i in range (len(self.settings['columns']))})
+                except:
+                    print(f"ERROR: The row has {len(row)} items and there are {len(self.settings['columns'])} columns in the table.")
+        else:
+            print('ERROR: Invalid group parameter value (use True or False)')
+
+    def set_units(self,units):
+        units.insert(0, None)
+        try:
+            self.settings['units'] = {self.settings['columns'][i]: units[i] for i in range (len(self.settings['columns']))}
+        except:
+            print(f"ERROR: Units has {len(units)} items and there are {len(self.settings['columns'])} columns in the table.")
